@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional
 
 from fastapi.encoders import jsonable_encoder
-from sqlalchemy import select
+from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud.base import CRUDBase
@@ -57,19 +57,18 @@ class CRUDCharityProject(CRUDBase):
         session: AsyncSession,
     ) -> list[dict[str, str]]:
         projects = await session.execute(
-            select(CharityProject).where(CharityProject.fully_invested == 1)
+            select(CharityProject).where(CharityProject.fully_invested == 1).order_by(desc(CharityProject.close_date - CharityProject.create_date))
         )
         projects = projects.scalars().all()
-        sorted_list = []
+        project_list = []
         for project in projects:
-            sorted_list.append(
+            project_list.append(
                 {
                     'name': project.name,
                     'funding_time': project.close_date - project.create_date,
                     'description': project.description
                 }
             )
-        project_list = sorted(sorted_list, key=lambda x: x['funding_time'])
         return project_list
 
 

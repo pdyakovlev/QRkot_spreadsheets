@@ -7,15 +7,18 @@ CHARITY_PROJ_ENDPOINTS_TAGS = ('charity_projects',)
 DONATION_ENDPOINTS_PREFIX = '/donation'
 DONATION_ENDPOINTS_TAGS = ('donations',)
 # Константы для GoogleAPI
+ROWCOUNT = 100
+COLUMNCOUNT = 11
+SHEETID = 0
 FORMAT_DATE = "%Y/%m/%d %H:%M:%S"
 SPREADSHEET_BODY = {
     'properties': {'title': 'Отчет от определенной даты',
                    'locale': 'ru_RU'},
     'sheets': [{'properties': {'sheetType': 'GRID',
-                               'sheetId': 0,
+                               'sheetId': SHEETID,
                                'title': 'Лист1',
-                               'gridProperties': {'rowCount': 100,
-                                                  'columnCount': 11}}}]
+                               'gridProperties': {'rowCount': ROWCOUNT,
+                                                  'columnCount': COLUMNCOUNT}}}]
 }
 
 TABLE_VALUES = [

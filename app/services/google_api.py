@@ -7,9 +7,7 @@ from app.core.config import settings
 from app.core.constants import FORMAT_DATE, SPREADSHEET_BODY, TABLE_VALUES
 
 
-# Функция создания таблицы
 async def spreadsheets_create(wrapper_services: Aiogoogle) -> str:
-    # Получаем текущую дату для заголовка документа
     now_date_time = datetime.now().strftime(FORMAT_DATE)
     service = await wrapper_services.discover('sheets', 'v4')
 
@@ -19,11 +17,10 @@ async def spreadsheets_create(wrapper_services: Aiogoogle) -> str:
     response = await wrapper_services.as_service_account(
         service.spreadsheets.create(json=spreadsheet_body)
     )
-    spreadsheetid = response['spreadsheetId']
-    return spreadsheetid
+
+    return response['spreadsheetId']
 
 
-# Функция для предоставления прав доступа личному аккаунту
 async def set_user_permissions(
         spreadsheetid: str,
         wrapper_services: Aiogoogle
@@ -40,8 +37,6 @@ async def set_user_permissions(
         ))
 
 
-# Функция для записи полученной из базы данных информации
-# в документ с таблицами
 async def spreadsheets_update_value(
         spreadsheetid: str,
         projects: list,
@@ -49,10 +44,10 @@ async def spreadsheets_update_value(
 ) -> None:
     now_date_time = datetime.now().strftime(FORMAT_DATE)
     service = await wrapper_services.discover('sheets', 'v4')
-    # Здесь формируется тело таблицы
+
     table_values = copy.deepcopy(TABLE_VALUES)
     table_values[0] = ['Отчет от', now_date_time]
-    # # Здесь в таблицу добавляются строки
+
     for project in projects:
         project_row = [
             str(project['name']),

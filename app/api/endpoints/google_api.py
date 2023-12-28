@@ -24,11 +24,10 @@ async def get_report(
 ):
     """Только для суперюзеров."""
     projects = await charity_project_crud.get_projects_by_completion_rate(session)
-    # Вызов функций
+
     spreadsheetid = await spreadsheets_create(wrapper_services)
     await set_user_permissions(spreadsheetid, wrapper_services)
     await spreadsheets_update_value(spreadsheetid,
                                     projects,
                                     wrapper_services)
-    print(f'Отчёт: https://docs.google.com/spreadsheets/d/{spreadsheetid}')
-    return projects
+    return projects, f'Отчёт: https://docs.google.com/spreadsheets/d/{spreadsheetid}'

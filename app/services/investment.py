@@ -10,24 +10,7 @@ from app.crud.donation import donation_crud
 from app.models import CharityProject, Donation
 
 
-async def get_donations_and_projects(
-    session: AsyncSession
-) -> Union[CharityProject, Donation]:
-    """
-    Функция получения актуальных проектов и пожертвований.
-    """
-    active_donations = await (
-        donation_crud.get_active_order_by_create_date(session)
-    )
-    active_projects = await (
-        charity_project_crud.get_active_order_by_create_date(session)
-    )
-    if not (active_donations or active_projects):
-        return None, None
-
-    return active_donations, active_projects
-
-
+# Не понимаю какую логику нужно вынести из функции.
 async def perform_investment(
     session: AsyncSession,
     new_db_obj: Union[CharityProject, Donation]
@@ -36,7 +19,14 @@ async def perform_investment(
     Функция распределения средств среди активных проектов и пожертвований.
     """
     try:
-        active_donations, active_projects = await get_donations_and_projects(session)
+        active_donations = await (
+            donation_crud.get_active_order_by_create_date(session)
+        )
+        active_projects = await (
+            charity_project_crud.get_active_order_by_create_date(session)
+        )
+        if not (active_donations or active_projects):
+            return None, None
         donation_index = 0
         project_index = 0
         len_active_donations = len(active_donations)
