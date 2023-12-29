@@ -10,7 +10,62 @@ from app.crud.donation import donation_crud
 from app.models import CharityProject, Donation
 
 
-# Не понимаю какую логику нужно вынести из функции.
+def invest(first_active_donation: Donation,
+           first_active_project: CharityProject
+           ) -> Union[CharityProject, Donation]:
+
+    """
+    Функция вычисляющая количество инвестированных денег.
+    """
+
+    donation_capacity = (
+        first_active_donation.full_amount -
+        first_active_donation.invested_amount
+    )
+    project_capacity = (
+        first_active_project.full_amount -
+        first_active_project.invested_amount
+    )
+    min_capacity = min(donation_capacity, project_capacity)
+    first_active_donation.invested_amount += min_capacity
+    first_active_project.invested_amount += min_capacity
+    return first_active_donation, first_active_project
+
+
+def is_donation_fully_invested(first_active_donation: Donation,
+                               donation_index: int
+                               ) -> Union[Donation, int]:
+    """
+    Функция проверяющая полностью распределено ли пожертвование.
+    """
+    if (
+        first_active_donation.invested_amount ==
+        first_active_donation.full_amount
+    ):
+        first_active_donation.fully_invested = True
+        first_active_donation.close_date = datetime.now()
+        donation_index += 1
+
+    return first_active_donation, donation_index
+
+
+def is_project_fully_invested(first_active_project: CharityProject,
+                              project_index: int
+                              ) -> Union[CharityProject, int]:
+    """
+    Функция проверяющая полностью ли закрыта сумма проекта.
+    """
+    if (
+        first_active_project.invested_amount ==
+        first_active_project.full_amount
+    ):
+        first_active_project.fully_invested = True
+        first_active_project.close_date = datetime.now()
+        project_index += 1
+
+    return first_active_project, project_index
+
+
 async def perform_investment(
     session: AsyncSession,
     new_db_obj: Union[CharityProject, Donation]
@@ -37,33 +92,13 @@ async def perform_investment(
         ):
             first_active_donation = active_donations[donation_index]
             first_active_project = active_projects[project_index]
-            donation_capacity = (
-                first_active_donation.full_amount -
-                first_active_donation.invested_amount
-            )
-            project_capacity = (
-                first_active_project.full_amount -
-                first_active_project.invested_amount
-            )
-            min_capacity = min(donation_capacity, project_capacity)
-            first_active_donation.invested_amount += min_capacity
-            first_active_project.invested_amount += min_capacity
 
-            if (
-                first_active_donation.invested_amount ==
-                first_active_donation.full_amount
-            ):
-                first_active_donation.fully_invested = True
-                first_active_donation.close_date = datetime.now()
-                donation_index += 1
+            first_active_donation, first_active_project = invest(first_active_donation, first_active_project)
 
-            if (
-                first_active_project.invested_amount ==
-                first_active_project.full_amount
-            ):
-                first_active_project.fully_invested = True
-                first_active_project.close_date = datetime.now()
-                project_index += 1
+            first_active_donation, donation_index = is_donation_fully_invested(first_active_donation, donation_index)
+
+            first_active_project, project_index = is_project_fully_invested(first_active_project, project_index)
+
             session.add(first_active_donation)
             session.add(first_active_project)
 
