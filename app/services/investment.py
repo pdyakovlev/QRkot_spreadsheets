@@ -63,8 +63,6 @@ def is_project_fully_invested(first_active_project: CharityProject,
         first_active_project.close_date = datetime.now()
         project_index += 1
 
-    return first_active_project, project_index
-
 
 async def perform_investment(
     session: AsyncSession,
@@ -93,11 +91,11 @@ async def perform_investment(
             first_active_donation = active_donations[donation_index]
             first_active_project = active_projects[project_index]
 
-            first_active_donation, first_active_project = invest(first_active_donation, first_active_project)
+            invest(first_active_donation, first_active_project)
 
-            first_active_donation, donation_index = is_donation_fully_invested(first_active_donation, donation_index)
+            is_donation_fully_invested(first_active_donation, donation_index)
 
-            first_active_project, project_index = is_project_fully_invested(first_active_project, project_index)
+            is_project_fully_invested(first_active_project, project_index)
 
             session.add(first_active_donation)
             session.add(first_active_project)
