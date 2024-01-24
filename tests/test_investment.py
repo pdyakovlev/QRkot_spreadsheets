@@ -38,7 +38,9 @@ def test_fully_invested_amount_for_two_projects(user_client, charity_project,
     assert charity_project_nunchaku.invested_amount == 0, common_asser_msg
 
 
-def test_donation_to_little_invest_project(user_client, charity_project_little_invested, charity_project_nunchaku):
+def test_donation_to_little_invest_project(
+        user_client, charity_project_little_invested, charity_project_nunchaku
+):
     common_asser_msg = (
         'Создано 2 проекта, один из которых частично инвестирован. Тест '
         'создает пожертвование. В первый проект пожертвования должны '

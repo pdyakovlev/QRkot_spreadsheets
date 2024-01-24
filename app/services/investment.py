@@ -10,8 +10,8 @@ from app.crud.donation import donation_crud
 from app.models import CharityProject, Donation
 
 
-def invest(first_active_donation: Donation,
-           first_active_project: CharityProject
+def invest(fad: Donation,
+           fap: CharityProject
            ) -> Union[CharityProject, Donation]:
 
     """
@@ -19,48 +19,47 @@ def invest(first_active_donation: Donation,
     """
 
     donation_capacity = (
-        first_active_donation.full_amount -
-        first_active_donation.invested_amount
+        fad.full_amount -
+        fad.invested_amount
     )
     project_capacity = (
-        first_active_project.full_amount -
-        first_active_project.invested_amount
+        fap.full_amount -
+        fap.invested_amount
     )
     min_capacity = min(donation_capacity, project_capacity)
-    first_active_donation.invested_amount += min_capacity
-    first_active_project.invested_amount += min_capacity
-    return first_active_donation, first_active_project
+    fad.invested_amount += min_capacity
+    fap.invested_amount += min_capacity
 
 
-def is_donation_fully_invested(first_active_donation: Donation,
-                               donation_index: int
+def is_donation_fully_invested(fad: Donation,
+                               don_ind: int
                                ) -> Union[Donation, int]:
     """
     Функция проверяющая полностью распределено ли пожертвование.
     """
     if (
-        first_active_donation.invested_amount ==
-        first_active_donation.full_amount
+        fad.invested_amount ==
+        fad.full_amount
     ):
-        first_active_donation.fully_invested = True
-        first_active_donation.close_date = datetime.now()
-        donation_index += 1
+        fad.fully_invested = True
+        fad.close_date = datetime.now()
+        don_ind += 1
 
-    return first_active_donation, donation_index
+    return fad, don_ind
 
 
-def is_project_fully_invested(first_active_project: CharityProject,
+def is_project_fully_invested(fap: CharityProject,
                               project_index: int
                               ) -> Union[CharityProject, int]:
     """
     Функция проверяющая полностью ли закрыта сумма проекта.
     """
     if (
-        first_active_project.invested_amount ==
-        first_active_project.full_amount
+        fap.invested_amount ==
+        fap.full_amount
     ):
-        first_active_project.fully_invested = True
-        first_active_project.close_date = datetime.now()
+        fap.fully_invested = True
+        fap.close_date = datetime.now()
         project_index += 1
 
 
@@ -80,25 +79,25 @@ async def perform_investment(
         )
         if not (active_donations or active_projects):
             return None, None
-        donation_index = 0
+        don_ind = 0
         project_index = 0
         len_active_donations = len(active_donations)
         len_active_projects = len(active_projects)
         while (
-            donation_index < len_active_donations and
+            don_ind < len_active_donations and
             project_index < len_active_projects
         ):
-            first_active_donation = active_donations[donation_index]
-            first_active_project = active_projects[project_index]
+            fad = active_donations[don_ind]
+            fap = active_projects[project_index]
 
-            invest(first_active_donation, first_active_project)
+            invest(fad, fap)
 
-            is_donation_fully_invested(first_active_donation, donation_index)
+            fad, don_ind = is_donation_fully_invested(fad, don_ind)
 
-            is_project_fully_invested(first_active_project, project_index)
+            is_project_fully_invested(fap, project_index)
 
-            session.add(first_active_donation)
-            session.add(first_active_project)
+            session.add(fad)
+            session.add(fap)
 
         await session.commit()
         await session.refresh(new_db_obj)
